@@ -12,7 +12,7 @@
         <!-- Default Controller -->
         <service id="conduction_digid.saml_controller" class="Conduction\SamlBundle\Controller\SamlController" public="true">
             <argument key="$samlAuth" type="service" id="php-digid.auth"/>
-            <argument key="$enabledParameter">saml_enabled</argument>
+            <argument key="$enabledParameter">digid_enabled</argument>
             <call method="setContainer">
                 <argument type="service" id="Psr\Container\ContainerInterface"/>
             </call>
