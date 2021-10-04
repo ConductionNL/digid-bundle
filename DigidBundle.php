@@ -11,10 +11,10 @@
  * file that was distributed with this source code.
  */
 
-namespace Conduction\SamlBundle;
+namespace Conduction\DigidBundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
-class SamlBundle extends Bundle
+class DigidBundle extends Bundle
 {
 }
