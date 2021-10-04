@@ -23,7 +23,7 @@
 		"guzzlehttp/guzzle": "^6.3",
 		"ramsey/uuid": "^3.8",
 		"onelogin/php-saml": "^4.0",
-		"conduction/commongroundbundle": "v2.*-dev",
+		"conduction/commongroundbundle": "v2.*-dev | dev-feature-gateway",
 		"conduction/samlbundle": "dev-master"
 	},
 	"autoload" : {
