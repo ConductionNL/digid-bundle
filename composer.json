@@ -1,7 +1,7 @@
 {
 	"name" : "conduction/digidbundle",
 	"type" : "symfony-bundle",
-	"description" : "Symfony Bundle for SAML configuration",
+	"description" : "Symfony Bundle for DigiD configuration",
 	"keywords" : [
 		"saml"
 	],
@@ -28,7 +28,7 @@
 	},
 	"autoload" : {
 		"psr-4": {
-			"Conduction\\SamlBundle\\": ""
+			"Conduction\\DigidBundle\\": ""
 		},
 		"exclude-from-classmap" : [
 			"/Tests/"
