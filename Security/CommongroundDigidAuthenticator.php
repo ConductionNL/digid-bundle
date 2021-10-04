@@ -11,6 +11,7 @@ namespace Conduction\DigidBundle\Security;
 
 use Conduction\CommonGroundBundle\Security\User\CommongroundUser;
 use Conduction\CommonGroundBundle\Service\CommonGroundService;
+use Conduction\SamlBundle\Security\User\AuthenticationUser;
 use Doctrine\ORM\EntityManagerInterface;
 use GuzzleHttp\Client;
 use OneLogin\Saml2\Auth;
@@ -60,7 +61,7 @@ class CommongroundDigidAuthenticator extends AbstractGuardAuthenticator
      */
     public function supports(Request $request)
     {
-        return 'app_default_samltest' === $request->attributes->get('_route')
+        return 'conduction_digid_artifact' === $request->attributes->get('_route')
             && $request->isMethod('GET');
     }
 
@@ -111,8 +112,8 @@ class CommongroundDigidAuthenticator extends AbstractGuardAuthenticator
         $client = new Client([
             'base_uri' => 'https://was-preprod1.digid.nl',
             'timeout'  => 5.0,
-            'ssl_key'  => $this->params->get('app_ssl_key'),
-            'cert'     => $this->params->get('app_certificate'),
+            'ssl_key'  => $this->params->get('app_key'),
+            'cert'     => $this->params->get('app_cert'),
         ]);
 
         $response = $client->request('POST', $this->params->get('artifactUrl'), [
@@ -126,7 +127,6 @@ class CommongroundDigidAuthenticator extends AbstractGuardAuthenticator
         $result = $response->getBody()->getContents();
 
         $data = $this->xmlEncoder->decode($result, 'xml');
-
         $nameId = $data['soapenv:Body']['samlp:ArtifactResponse']['samlp:Response']['saml:Assertion']['saml:Subject']['saml:NameID'];
         $nameIdExplode = explode(":", $nameId);
 
@@ -160,7 +160,8 @@ class CommongroundDigidAuthenticator extends AbstractGuardAuthenticator
         array_push($user['roles'], 'scope.arc.events.read');
         array_push($user['roles'], 'scope.irc.assents.read');
 
-        return new CommongroundUser($user['naam']['voornamen'], $user['naam']['voornamen'], $user['naam']['voornamen'], null, $user['roles'], $this->commonGroundService->cleanUrl(['component'=>'brp', 'type'=>'ingeschrevenpersonen', 'id' => $user['burgerservicenummer']]), null, 'person', false);
+        return new AuthenticationUser($user['burgerservicenummer'], '', $user['naam']['voornamen'], $user['naam']['geslachtsnaam'], $user['naam']['voorletters'] .' '. $user['naam']['geslachtsnaam'], null, $user['roles'], $user['burgerservicenummer'], null);
+//        return new CommongroundUser($user['naam']['voornamen'], $user['naam']['voornamen'], $user['naam']['voornamen'], null, $user['roles'], $this->commonGroundService->cleanUrl(['component'=>'brp', 'type'=>'ingeschrevenpersonen', 'id' => $user['burgerservicenummer']]), null, 'person', false);
     }
 
     public function checkCredentials($credentials, UserInterface $user)
@@ -183,7 +184,11 @@ class CommongroundDigidAuthenticator extends AbstractGuardAuthenticator
 
         $this->session->set('user', $user);
 
-        return new RedirectResponse($this->urlGenerator->generate('app_default_index'));
+        if($request->query->has('RelayState')){
+            return new RedirectResponse($request->query->get('RelayState'));
+        } else {
+            return new RedirectResponse($this->urlGenerator->generate('app_default_index'));
+        }
     }
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception)
