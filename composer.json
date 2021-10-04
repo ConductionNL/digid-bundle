@@ -1,0 +1,49 @@
+{
+	"name" : "conduction/digidbundle",
+	"type" : "symfony-bundle",
+	"description" : "Symfony Bundle for SAML configuration",
+	"keywords" : [
+		"saml"
+	],
+	"homepage" : "https://conduction.nl",
+	"license" : "MIT",
+	"authors" : [{
+			"name" : "Robert Zondervan",
+			"email" : "robert@conduction.nl"
+		}, {
+			"name" : "Conduction",
+			"homepage" : "https://conduction.nl"
+		}
+	],
+	"require" : {
+		"php" : "^7.4.0",
+		"symfony/event-dispatcher" : "^5.0",
+		"symfony/cache" : "^5.0@stable",
+		"symfony/console" : "^5.0@stable",
+		"guzzlehttp/guzzle": "^6.3",
+		"ramsey/uuid": "^3.8",
+		"onelogin/php-saml": "^4.0",
+		"conduction/commongroundbundle": "v2.*-dev",
+		"conduction/samlbundle": "dev-master"
+	},
+	"autoload" : {
+		"psr-4": {
+			"Conduction\\SamlBundle\\": ""
+		},
+		"exclude-from-classmap" : [
+			"/Tests/"
+		]
+	},
+	"minimum-stability" : "alpha",
+	"support" : {
+		"email" : "ruben@conduction.nl",
+		"issues" : "https://github.com/ConductionNL/ConductionCommonGroundBundle/issues",
+		"source" : "https://github.com/ConductionNL/ConductionCommonGroundBundle"
+	},
+	"repositories" : [{
+			"type" : "git",
+			"url" : "https://github.com/ConductionNL/saml-bundle",
+			"name" : "source"
+		}
+	]
+}
