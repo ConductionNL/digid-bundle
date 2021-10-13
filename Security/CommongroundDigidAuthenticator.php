@@ -61,6 +61,7 @@ class CommongroundDigidAuthenticator extends AbstractGuardAuthenticator
      */
     public function supports(Request $request)
     {
+
         return 'conduction_digid_artifact' === $request->attributes->get('_route')
             && $request->isMethod('GET');
     }
@@ -75,7 +76,6 @@ class CommongroundDigidAuthenticator extends AbstractGuardAuthenticator
             'SAMLart'   => $request->query->get('SAMLart'),
 
         ];
-
         return $credentials;
     }
 
@@ -137,7 +137,6 @@ class CommongroundDigidAuthenticator extends AbstractGuardAuthenticator
     {
         $bsn = $this->samlartToBsn($credentials['SAMLart']);
         $this->session->set('bsn', $bsn);
-
         // Aan de hand van BSN persoon ophalen uit haal centraal
         try {
             $user = $this->commonGroundService->getResource(['component' => 'brp', 'type' => 'ingeschrevenpersonen', 'id' => $bsn], [], false);
@@ -193,7 +192,7 @@ class CommongroundDigidAuthenticator extends AbstractGuardAuthenticator
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception)
     {
-        return new RedirectResponse($this->params->get('app_url').'/saml/Login');
+        return new RedirectResponse($this->router->generate('conduction_digid_login'));
     }
 
     /**
