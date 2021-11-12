@@ -159,7 +159,7 @@ class CommongroundDigidAuthenticator extends AbstractGuardAuthenticator
         array_push($user['roles'], 'scope.arc.events.read');
         array_push($user['roles'], 'scope.irc.assents.read');
 
-        return new AuthenticationUser($user['burgerservicenummer'], '', $user['naam']['voornamen'], $user['naam']['geslachtsnaam'], $user['naam']['voorletters'] .' '. $user['naam']['geslachtsnaam'], null, $user['roles'], $user['burgerservicenummer'], null);
+        return new AuthenticationUser($user['burgerservicenummer'], $user['burgerservicenummer'], '', $user['naam']['voornamen'], $user['naam']['geslachtsnaam'], $user['naam']['voorletters'] .' '. $user['naam']['geslachtsnaam'], null, $user['roles'], $user['burgerservicenummer'], null);
 //        return new CommongroundUser($user['naam']['voornamen'], $user['naam']['voornamen'], $user['naam']['voornamen'], null, $user['roles'], $this->commonGroundService->cleanUrl(['component'=>'brp', 'type'=>'ingeschrevenpersonen', 'id' => $user['burgerservicenummer']]), null, 'person', false);
     }
 
