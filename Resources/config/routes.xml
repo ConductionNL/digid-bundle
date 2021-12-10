@@ -3,7 +3,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://symfony.com/schema/routing
         http://symfony.com/schema/routing/routing-1.0.xsd">
-    <route id="conduction_digid_metadata" controller="conduction_digid.saml_controller:metadataAction" path="/digid" />
+    <route id="conduction_digid_metadata" controller="conduction_digid.saml_controller:metadataAction" path="/saml" />
     <route id="conduction_digid_login" controller="conduction_digid.saml_controller:loginAction" path="/digid/login" />
     <route id="conduction_digid_artifact" controller="conduction_digid.saml_controller:artifactAction" path="/digid/SLO/artifact" />
 </routes>
