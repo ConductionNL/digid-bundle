@@ -90,9 +90,9 @@ class CommongroundDigidAuthenticator extends AbstractGuardAuthenticator
         xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
         xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
         xmlns:ec="http://www.w3.org/2001/10/xml-exc-c14n#"
-        ID="_1330416073" Version="2.0" IssueInstant="'.$date.'">
-        <saml:Issuer>'.$config['entityId'].'</saml:Issuer>
-        <samlp:Artifact>'.$artifact.'</samlp:Artifact>
+        ID="_1330416073" Version="2.0" IssueInstant="' . $date . '">
+        <saml:Issuer>' . $config['entityId'] . '</saml:Issuer>
+        <samlp:Artifact>' . $artifact . '</samlp:Artifact>
         </samlp:ArtifactResolve>';
 
         $signed = \OneLogin\Saml2\Utils::addSign($xml, $config['privateKey'], $config['x509cert']);
@@ -104,7 +104,7 @@ class CommongroundDigidAuthenticator extends AbstractGuardAuthenticator
         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
         <soapenv:Body>
-        '.$signed.'
+        ' . $signed . '
         </soapenv:Body>
         </soapenv:Envelope>';
 
@@ -116,7 +116,7 @@ class CommongroundDigidAuthenticator extends AbstractGuardAuthenticator
             'cert'     => $this->params->get('app_cert'),
         ]);
 
-        $response = $client->request('POST', $this->params->get('artifactUrl'), [
+        $response = $client->request('POST', $this->params->get('digidArtifactUrl'), [
             'headers' => [
                 'Content-Type' => 'text/xml',
                 'SOAPAction'   => $config['entityId'],
@@ -159,17 +159,17 @@ class CommongroundDigidAuthenticator extends AbstractGuardAuthenticator
         array_push($user['roles'], 'scope.arc.events.read');
         array_push($user['roles'], 'scope.irc.assents.read');
 
-        return new AuthenticationUser($user['burgerservicenummer'], $user['burgerservicenummer'], '', $user['naam']['voornamen'], $user['naam']['geslachtsnaam'], $user['naam']['voorletters'] .' '. $user['naam']['geslachtsnaam'], null, $user['roles'], $user['burgerservicenummer'], null);
-//        return new CommongroundUser($user['naam']['voornamen'], $user['naam']['voornamen'], $user['naam']['voornamen'], null, $user['roles'], $this->commonGroundService->cleanUrl(['component'=>'brp', 'type'=>'ingeschrevenpersonen', 'id' => $user['burgerservicenummer']]), null, 'person', false);
+        return new AuthenticationUser($user['burgerservicenummer'], $user['burgerservicenummer'], '', $user['naam']['voornamen'], $user['naam']['geslachtsnaam'], $user['naam']['voorletters'] . ' ' . $user['naam']['geslachtsnaam'], null, $user['roles'], $user['burgerservicenummer'], null);
+        //        return new CommongroundUser($user['naam']['voornamen'], $user['naam']['voornamen'], $user['naam']['voornamen'], null, $user['roles'], $this->commonGroundService->cleanUrl(['component'=>'brp', 'type'=>'ingeschrevenpersonen', 'id' => $user['burgerservicenummer']]), null, 'person', false);
     }
 
     public function checkCredentials($credentials, UserInterface $user)
     {
-//        try {
-//            $user = $this->commonGroundService->getResource(['component' => 'brp', 'type' => 'ingeschrevenpersonen', 'id' => $credentials['bsn']]);
-//        } catch (\Throwable $e) {
-//            return;
-//        }
+        //        try {
+        //            $user = $this->commonGroundService->getResource(['component' => 'brp', 'type' => 'ingeschrevenpersonen', 'id' => $credentials['bsn']]);
+        //        } catch (\Throwable $e) {
+        //            return;
+        //        }
 
         // no adtional credential check is needed in this case so return true to cause authentication success
         return true;
@@ -177,13 +177,13 @@ class CommongroundDigidAuthenticator extends AbstractGuardAuthenticator
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, $providerKey)
     {
-//        $backUrl = $request->request->get('back_url');
+        //        $backUrl = $request->request->get('back_url');
         $bsn = $this->session->get('bsn');
         $user = $this->commonGroundService->getResource(['component' => 'brp', 'type' => 'ingeschrevenpersonen', 'id' => $bsn]);
 
         $this->session->set('user', $user);
 
-        if($request->query->has('RelayState')){
+        if ($request->query->has('RelayState')) {
             return new RedirectResponse($request->query->get('RelayState'));
         } else {
             return new RedirectResponse($this->urlGenerator->generate('app_default_index'));
@@ -201,7 +201,7 @@ class CommongroundDigidAuthenticator extends AbstractGuardAuthenticator
     public function start(Request $request, AuthenticationException $authException = null)
     {
         if ($this->params->get('app_subpath') && $this->params->get('app_subpath') != 'false') {
-            return new RedirectResponse('/'.$this->params->get('app_subpath').$this->router->generate('app_user_digispoof', []));
+            return new RedirectResponse('/' . $this->params->get('app_subpath') . $this->router->generate('app_user_digispoof', []));
         } else {
             return new RedirectResponse($this->router->generate('app_user_digispoof', ['response' => $request->request->get('back_url'), 'back_url' => $request->request->get('back_url')]));
         }
@@ -215,7 +215,7 @@ class CommongroundDigidAuthenticator extends AbstractGuardAuthenticator
     protected function getLoginUrl()
     {
         if ($this->params->get('app_subpath') && $this->params->get('app_subpath') != 'false') {
-            return '/'.$this->params->get('app_subpath').$this->router->generate('app_user_digispoof', [], UrlGeneratorInterface::RELATIVE_PATH);
+            return '/' . $this->params->get('app_subpath') . $this->router->generate('app_user_digispoof', [], UrlGeneratorInterface::RELATIVE_PATH);
         } else {
             return $this->router->generate('app_user_digispoof', [], UrlGeneratorInterface::RELATIVE_PATH);
         }

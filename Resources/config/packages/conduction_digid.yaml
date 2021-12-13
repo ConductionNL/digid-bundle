@@ -7,7 +7,7 @@ parameters:
   env(DIGID_IDP_CERT): ''
   env(DIGID_ARTIFACT_METHOD): 'Artifact'
 
-  digidArtifactUrl: 'https://digispoof.demodam.nl/artifact'
+  digidArtifactUrl: '%env(DIGID_ARTIFACT_URL)%'
 
   digid_x509_cert: '%env(default::file:DIGID_IDP_CERT)%'
 
