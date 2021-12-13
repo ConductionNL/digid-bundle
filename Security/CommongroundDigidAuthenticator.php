@@ -84,8 +84,7 @@ class CommongroundDigidAuthenticator extends AbstractGuardAuthenticator
         $date = date('Y-m-d\TH:i:s\Z');
         $config = $this->samlAuth->getSettings()->getSPData();
 
-        $xml = '
-                <samlp:ArtifactResolve
+        $xml = '<samlp:ArtifactResolve
         xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
         xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
         xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
