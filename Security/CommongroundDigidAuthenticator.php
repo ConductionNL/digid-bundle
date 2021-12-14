@@ -183,7 +183,7 @@ class CommongroundDigidAuthenticator extends AbstractGuardAuthenticator
         $this->session->set('user', $user);
 
         if ($request->query->has('RelayState')) {
-            return new RedirectResponse($request->query->get('RelayState'));
+            return new RedirectResponse(rtrim($request->query->get('RelayState'), '/') . '/');
         } else {
             return new RedirectResponse($this->urlGenerator->generate('app_default_index'));
         }
