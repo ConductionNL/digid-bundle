@@ -11,10 +11,12 @@ namespace Conduction\DigidBundle\Security;
 
 use Conduction\CommonGroundBundle\Security\User\CommongroundUser;
 use Conduction\CommonGroundBundle\Service\CommonGroundService;
+use Conduction\DigidBundle\Service\DigidJwtService;
 use Conduction\SamlBundle\Security\User\AuthenticationUser;
 use Doctrine\ORM\EntityManagerInterface;
 use GuzzleHttp\Client;
 use OneLogin\Saml2\Auth;
+use Symfony\Component\Cache\Adapter\AdapterInterface as CacheInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -34,24 +36,26 @@ class CommongroundDigidAuthenticator extends AbstractGuardAuthenticator
     private $em;
     private $params;
     private $commonGroundService;
-    private $csrfTokenManager;
     private $router;
     private $urlGenerator;
     private $session;
     private Auth $samlAuth;
     private XmlEncoder $xmlEncoder;
+    private CacheInterface $cache;
+    private DigidJwtService $jwtService;
 
-    public function __construct(EntityManagerInterface $em, ParameterBagInterface $params, CommonGroundService $commonGroundService, CsrfTokenManagerInterface $csrfTokenManager, RouterInterface $router, UrlGeneratorInterface $urlGenerator, SessionInterface $session, Auth $samlAuth)
+    public function __construct(EntityManagerInterface $em, ParameterBagInterface $params, CommonGroundService $commonGroundService, RouterInterface $router, UrlGeneratorInterface $urlGenerator, SessionInterface $session, Auth $samlAuth, CacheInterface $cache)
     {
         $this->em = $em;
         $this->params = $params;
         $this->commonGroundService = $commonGroundService;
-        $this->csrfTokenManager = $csrfTokenManager;
         $this->router = $router;
         $this->urlGenerator = $urlGenerator;
         $this->session = $session;
         $this->samlAuth = $samlAuth;
         $this->xmlEncoder = new XmlEncoder(['xml_root_node_name' => 'md:EntityDescriptor']);
+        $this->cache = $cache;
+        $this->jwtService = new DigidJwtService($params, $commonGroundService);
     }
 
     /**
@@ -132,6 +136,33 @@ class CommongroundDigidAuthenticator extends AbstractGuardAuthenticator
         return end($nameIdExplode);
     }
 
+    /**
+     * Gets the scopes for the DigiD usergroup
+     * @return  array   The scopes for the DigiD usergroup
+     */
+    private function getRoles(): array
+    {
+        $item = $this->cache->getItem('digidScopes');
+        if ($item->isHit()) {
+            return $item->get();
+        }
+
+        $groups = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'groups'], ['name' => 'DIGID'], false)['hydra:member'];
+        $scopes = [];
+        if (count($groups) == 1) {
+            foreach ($groups[0]['scopes'] as $scope) {
+                $scopes[] = $scope['code'];
+            }
+        }
+        if (count($scopes) > 0) {
+            $item->set($scopes);
+            $item->tag('digidScopes');
+            $this->cache->save($item);
+
+        }
+        return $scopes;
+    }
+
     public function getUser($credentials, UserProviderInterface $userProvider)
     {
         $bsn = $this->samlartToBsn($credentials['SAMLart']);
@@ -144,21 +175,17 @@ class CommongroundDigidAuthenticator extends AbstractGuardAuthenticator
         }
 
         if (!isset($user['roles'])) {
-            $user['roles'] = [];
+            $user['roles'] = $this->getRoles();
         }
 
         if (!in_array('ROLE_USER', $user['roles'])) {
             $user['roles'][] = 'ROLE_USER';
         }
 
-        array_push($user['roles'], 'scope.vrc.requests.read');
-        array_push($user['roles'], 'scope.orc.orders.read');
-        array_push($user['roles'], 'scope.cmc.messages.read');
-        array_push($user['roles'], 'scope.bc.invoices.read');
-        array_push($user['roles'], 'scope.arc.events.read');
-        array_push($user['roles'], 'scope.irc.assents.read');
+        $user = new AuthenticationUser($user['burgerservicenummer'], $user['burgerservicenummer'], '', $user['naam']['voornamen'], $user['naam']['geslachtsnaam'], $user['naam']['voorletters'] . ' ' . $user['naam']['geslachtsnaam'], null, $user['roles'], $user['burgerservicenummer'], null);
+        $this->session->set('token', $this->jwtService->generateJwtToken($user));
 
-        return new AuthenticationUser($user['burgerservicenummer'], $user['burgerservicenummer'], '', $user['naam']['voornamen'], $user['naam']['geslachtsnaam'], $user['naam']['voorletters'] . ' ' . $user['naam']['geslachtsnaam'], null, $user['roles'], $user['burgerservicenummer'], null);
+        return $user;
         //        return new CommongroundUser($user['naam']['voornamen'], $user['naam']['voornamen'], $user['naam']['voornamen'], null, $user['roles'], $this->commonGroundService->cleanUrl(['component'=>'brp', 'type'=>'ingeschrevenpersonen', 'id' => $user['burgerservicenummer']]), null, 'person', false);
     }
 
@@ -183,9 +210,9 @@ class CommongroundDigidAuthenticator extends AbstractGuardAuthenticator
         $this->session->set('user', $user);
 
         if ($request->query->has('RelayState')) {
-            return new RedirectResponse(rtrim($request->query->get('RelayState'), '/') . '/');
+            return new RedirectResponse(rtrim($request->query->get('RelayState'), '/') . '/', 302, ['X-AUTH-TOKEN' => $this->session->get('token')]);
         } else {
-            return new RedirectResponse($this->urlGenerator->generate('app_default_index'));
+            return new RedirectResponse($this->urlGenerator->generate('app_default_index'), 302, ['X-AUTH-TOKEN' => $this->session->get('token')]);
         }
     }
 
