@@ -71,9 +71,10 @@ class DigidJwtService
      */
     private function createSession(AuthenticationUser $user): array
     {
+        $expiry = new \DateTime('+15 minutes');
         $session = [
             'user'      => $user->getUserIdentifier(),
-            'expiry'    => new \DateTime('+15 minutes'),
+            'expiry'    => $expiry->format('Y-m-d H:i:s'),
             'valid'     => true,
         ];
         $session = $this->commonGroundService->createResource(
