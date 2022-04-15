@@ -46,6 +46,7 @@ class DigidJwtService
     {
         $this->commonGroundService = $commonGroundService;
         $this->parameterBag = $parameterBag;
+        $this->csrfTokenManager = new CsrfTokenManager();
     }
 
     /**
