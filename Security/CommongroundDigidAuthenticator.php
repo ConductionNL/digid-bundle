@@ -210,9 +210,9 @@ class CommongroundDigidAuthenticator extends AbstractGuardAuthenticator
         $this->session->set('user', $user);
 
         if ($request->query->has('RelayState')) {
-            return new RedirectResponse(rtrim($request->query->get('RelayState'), '/') . '/', 302, ['X-AUTH-TOKEN' => $this->session->get('token')]);
+            return new RedirectResponse(rtrim($request->query->get('RelayState'), '/') . '/?token='.base64_encode($this->session->get('token')));
         } else {
-            return new RedirectResponse($this->urlGenerator->generate('app_default_index'), 302, ['X-AUTH-TOKEN' => $this->session->get('token')]);
+            return new RedirectResponse($this->urlGenerator->generate('app_default_index').'/?token='.base64_encode($this->session->get('token')));
         }
     }
 

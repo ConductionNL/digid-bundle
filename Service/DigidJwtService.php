@@ -46,6 +46,7 @@ class DigidJwtService
     {
         $this->commonGroundService = $commonGroundService;
         $this->parameterBag = $parameterBag;
+        $this->csrfTokenManager = new CsrfTokenManager();
     }
 
     /**
@@ -71,9 +72,10 @@ class DigidJwtService
      */
     private function createSession(AuthenticationUser $user): array
     {
+        $expiry = new \DateTime('+15 minutes');
         $session = [
             'user'      => $user->getUserIdentifier(),
-            'expiry'    => new \DateTime('+15 minutes'),
+            'expiry'    => $expiry->format('Y-m-d H:i:s'),
             'valid'     => true,
         ];
         $session = $this->commonGroundService->createResource(
@@ -83,7 +85,7 @@ class DigidJwtService
             ]
         );
         return $this->commonGroundService->updateResource(
-            ['csrfToken' => $this->csrfTokenManager->getToken($session['id'])],
+            ['csrfToken' => $this->csrfTokenManager->getToken($session['id'])->getValue()],
             ['component' => 'uc', 'type' => 'sessions', 'id' => $session['id']]
         );
     }
@@ -108,7 +110,7 @@ class DigidJwtService
             'csrfToken' => $session['csrfToken'],
             'iss'       => $this->parameterBag->get('app_url'),
             'ias'       => $time->getTimestamp(),
-            'exp'       => \DateTime()::date_timestamp_get(new \DateTime($session['expiry'])),
+            'exp'       => date_timestamp_get(new \DateTime($session['expiry'])),
         ];
     }
 
