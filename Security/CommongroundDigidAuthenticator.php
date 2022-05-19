@@ -151,7 +151,7 @@ class CommongroundDigidAuthenticator extends AbstractGuardAuthenticator
         $scopes = [];
         if (count($groups) == 1) {
             foreach ($groups[0]['scopes'] as $scope) {
-                $scopes[] = "scope.{$scope['code']}";
+                $scopes[] = "ROLE_scope.{$scope['code']}";
             }
         }
         if (count($scopes) > 0) {
